@@ -25,7 +25,7 @@ async def search_paragraphs(
         per_page: int = Query(default=10)
 ):
     offset = (page - 1) * per_page
-    result = await elasticsearch_service.search_paragraphs(keywords, operator, offset)
+    result = await elasticsearch_service.search_paragraphs(keywords, operator, offset, per_page)
     return result
 
 

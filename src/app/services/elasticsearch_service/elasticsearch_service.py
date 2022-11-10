@@ -24,8 +24,30 @@ async def add_paragraph(paragraph: str):
     return document
 
 
-async def search_paragraphs(keywords: List[str], operator: str, offset: int):
-    pass
+async def search_paragraphs(keywords: List[str], operator: str, offset: int, limit: int):
+    query = {"bool": {}}
+
+    if operator == OperatorEnum.AND:
+        query["bool"]["must"] = [
+            {"term": {"content": keyword}}
+            for keyword in keywords
+        ]
+    else:
+        query["bool"]["should"] = [
+            {"term": {"content": keyword}}
+            for keyword in keywords
+        ]
+
+    result = await es_client.search(
+        index=config.ELASTICSEARCH_PARAGRAPHS_INDEX,
+        body={"query": query},
+        from_=offset,
+        size=limit,
+    )
+    return {
+        "total": result["hits"]["total"]["value"],
+        "items": [item["_source"] for item in result["hits"]["hits"]]
+    }
 
 
 async def get_top_words(count: int):
