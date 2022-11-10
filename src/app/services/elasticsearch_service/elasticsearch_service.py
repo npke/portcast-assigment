@@ -51,4 +51,14 @@ async def search_paragraphs(keywords: List[str], operator: str, offset: int, lim
 
 
 async def get_top_words(count: int):
-    pass
+    query = {
+        "match_all": {}
+    }
+    result = await es_client.search(
+        index=config.ELASTICSEARCH_WORDS_INDEX,
+        body={"query": query},
+        sort=[{"count": "desc"}],
+        size=count
+    )
+    return [item["_source"] for item in result["hits"]["hits"]]
+
