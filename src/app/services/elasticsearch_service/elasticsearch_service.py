@@ -3,6 +3,7 @@ from typing import List
 from uuid import uuid4
 
 from elasticsearch import AsyncElasticsearch
+from elasticsearch.helpers import async_bulk
 
 from app.config import config
 from app.enums import OperatorEnum
@@ -62,3 +63,25 @@ async def get_top_words(count: int):
     )
     return [item["_source"] for item in result["hits"]["hits"]]
 
+
+async def upsert_words_count(words_with_count):
+    upserts = [
+        {
+            "_index": config.ELASTICSEARCH_WORDS_INDEX,
+            "_id": word,
+            "_op_type": "update",
+            "script": {
+                "source": "ctx._source.count += params.count",
+                "lang": "painless",
+                "params": {"count": count}
+            },
+            "upsert": {
+                "word": word,
+                "count": count,
+                "definition": None,
+            }
+        }
+        for word, count in words_with_count.items()
+    ]
+
+    await async_bulk(es_client, upserts)

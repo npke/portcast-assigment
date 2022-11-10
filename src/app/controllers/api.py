@@ -6,6 +6,7 @@ from app.config import config
 from app.enums import OperatorEnum
 from app.services.paragraph_service import paragraph_service
 from app.services.elasticsearch_service import elasticsearch_service
+from app.utils import nature_language
 
 api_router = APIRouter()
 
@@ -14,6 +15,10 @@ api_router = APIRouter()
 async def fetch_paragraph():
     paragraph = await paragraph_service.get_paragraph(number_of_sentences=config.NUMBER_OF_SENTENCES_PER_PARAGRAPH)
     document = await elasticsearch_service.add_paragraph(paragraph)
+
+    # Should be handled by task queue
+    words_with_count = nature_language.get_distinct_words_with_count(paragraph)
+    await elasticsearch_service.upsert_words_count(words_with_count)
     return document
 
 
