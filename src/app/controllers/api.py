@@ -12,7 +12,7 @@ api_router = APIRouter()
 
 @api_router.get("/get")
 async def fetch_paragraph():
-    paragraph = await paragraph_service.get_paragraph(sentences=config.NUMBER_OF_SENTENCES_PER_PARAGRAPH)
+    paragraph = await paragraph_service.get_paragraph(number_of_sentences=config.NUMBER_OF_SENTENCES_PER_PARAGRAPH)
     await elasticsearch_service.add_paragraph(paragraph)
 
     return {
