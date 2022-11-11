@@ -12,6 +12,7 @@ class Config:
     ELASTICSEARCH_PASSWORD = env_config("ELASTICSEARCH_PASSWORD")
     ELASTICSEARCH_PARAGRAPHS_INDEX = "paragraphs"
     ELASTICSEARCH_WORDS_INDEX = "words"
+    DICTIONARY_API_URL = "https://api.dictionaryapi.dev/api/v2/entries/en"
 
 
 config = Config()

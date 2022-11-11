@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime
 from typing import List
 from uuid import uuid4
@@ -7,6 +8,7 @@ from elasticsearch.helpers import async_bulk
 
 from app.config import config
 from app.enums import OperatorEnum
+from app.services.dictionary_service import dictionary_service
 
 es_client = AsyncElasticsearch(
     config.ELASTICSEARCH_HOST,
@@ -78,10 +80,29 @@ async def upsert_words_count(words_with_count):
             "upsert": {
                 "word": word,
                 "count": count,
-                "definition": None,
+                "definition": "NA",
             }
         }
         for word, count in words_with_count.items()
     ]
 
     await async_bulk(es_client, upserts)
+
+
+async def update_words_definition(words):
+    definitions = await asyncio.gather(*[
+        dictionary_service.get_definition(word)
+        for word in words
+    ])
+    updates = [
+        {
+            "_index": config.ELASTICSEARCH_WORDS_INDEX,
+            "_id": word,
+            "_op_type": "update",
+            "doc": {
+                "definition": definitions[index] if definitions[index] else "NA"
+            }
+        }
+        for index, word in enumerate(words)
+    ]
+    await async_bulk(es_client, updates)

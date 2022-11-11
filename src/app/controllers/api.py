@@ -19,6 +19,10 @@ async def fetch_paragraph():
     # Should be handled by task queue
     words_with_count = nature_language.get_distinct_words_with_count(paragraph)
     await elasticsearch_service.upsert_words_count(words_with_count)
+
+    top_words = await elasticsearch_service.get_top_words(count=config.TOP_WORDS_TO_RETURN_IN_DICTIONARY)
+    words_without_definitions = [word["word"] for word in top_words if word["definition"] == "NA"]
+    await elasticsearch_service.update_words_definition(words_without_definitions)
     return document
 
 
